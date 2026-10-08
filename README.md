@@ -181,14 +181,3 @@ npx eas-cli build --platform ios --profile production   # nube: entrega el .ipa
 ```
 Local en Mac: `npx expo prebuild --platform ios` → abrir `ios/*.xcworkspace` en Xcode →
 *Signing & Capabilities* con tu Team → *Product → Archive → Distribute App*.
-
-## Alcance del prototipo
-
-**Sí**: registro e inicio de sesión (JWT), 19 tablas en MySQL, 8 rutinas seed, ejecución de
-entrenamientos con series, 4 sensores (acelerómetro, giroscopio, magnetómetro, GPS), metas,
-racha y estadísticas, notificaciones push con preferencias y pago Premium con **Stripe en modo
-test** (webhook e idempotencia incluidos).
-
-**No en esta etapa**: pagos reales (claves live), mapa con la ruta, reconocimiento automático de
-más ejercicios, rutinas personalizadas asistidas, sistema de amigos/ranking, integración con
-wearables, machine learning ni ejecución en segundo plano.
