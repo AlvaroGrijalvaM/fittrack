@@ -104,6 +104,9 @@ router.get(
       [req.user.userId]
     );
 
+    const [u] = await pool.query('SELECT premium FROM users WHERE id = ? LIMIT 1', [req.user.userId]);
+    const premium = !!(u[0] && u[0].premium);
+
     const sum = (rows, key) => rows.reduce((s, r) => s + (r[key] || 0), 0);
     const [streakRes] = await pool.query(
       `SELECT DISTINCT activity_date FROM daily_activity
@@ -121,22 +124,25 @@ router.get(
     }
 
     res.json({
+      premium,
       week: {
         workouts: sum(weekRows, 'workouts_count'),
         minutes: sum(weekRows, 'total_minutes'),
         distance_m: sum(weekRows, 'total_distance_m'),
         calories: sum(weekRows, 'total_calories'),
       },
-      month: {
-        workouts: sum(monthRows, 'workouts_count'),
-        minutes: sum(monthRows, 'total_minutes'),
-      },
-      totals: {
-        workouts: totals[0].workouts,
-        minutes: Math.round(totals[0].seconds / 60),
-        distance_m: gpsTotals[0].distance,
-        calories: totals[0].calories,
-      },
+      // Métricas avanzadas: solo usuarios Premium
+      month: premium
+        ? { workouts: sum(monthRows, 'workouts_count'), minutes: sum(monthRows, 'total_minutes') }
+        : null,
+      totals: premium
+        ? {
+            workouts: totals[0].workouts,
+            minutes: Math.round(totals[0].seconds / 60),
+            distance_m: gpsTotals[0].distance,
+            calories: totals[0].calories,
+          }
+        : { workouts: totals[0].workouts },
       streak,
     });
   })

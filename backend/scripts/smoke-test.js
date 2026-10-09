@@ -105,9 +105,11 @@ async function main() {
   // 4) Historial + estadísticas
   const history = await req('GET', '/workouts/history', null, token);
   assert(history.total >= 1, 'GET /workouts/history');
+  assert(history.workouts.length <= 5, 'Historial free limitado a 5 entradas');
 
   const overview = await req('GET', '/stats/overview', null, token);
   assert(overview.week.workouts >= 1, 'GET /stats/overview (semana)');
+  assert(overview.premium === false && overview.month === null, 'Stats avanzados bloqueados en plan free');
   const weekly = await req('GET', '/stats/weekly', null, token);
   assert(weekly.week.length === 7, 'GET /stats/weekly (7 días)');
 

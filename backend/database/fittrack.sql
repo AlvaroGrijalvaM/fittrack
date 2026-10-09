@@ -414,9 +414,8 @@ DELIMITER ;
 INSERT INTO plans (id, name, price_mxn, billing_interval, features) VALUES
 (1, 'free',    0.00,  'month', JSON_ARRAY('Registro e inicio de sesión','Rutinas básicas',
             'Registro de entrenamientos','Historial','Notificaciones','Uso básico de sensores')),
-(2, 'premium', 79.00, 'month', JSON_ARRAY('Rutinas personalizadas','Estadísticas avanzadas',
-            'Historial ilimitado','Objetivos personalizados','Análisis detallado del progreso',
-            'Más rutinas','Sin publicidad'));
+(2, 'premium', 79.00, 'month', JSON_ARRAY('Rutinas personalizadas','Rutinas avanzadas',
+            'Estadísticas avanzadas','Historial completo','Insignia Premium'));
 
 -- 5.1) Ejercicios
 INSERT INTO exercises

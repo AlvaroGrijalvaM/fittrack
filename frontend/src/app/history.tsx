@@ -2,9 +2,9 @@
  * Historial de entrenamientos completados.
  */
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -45,13 +45,17 @@ export default function HistoryScreen() {
   const theme = useTheme();
   const [items, setItems] = useState<WorkoutItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [limited, setLimited] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get<{ workouts: WorkoutItem[]; total: number }>('/workouts/history?limit=50');
+      const res = await api.get<{ workouts: WorkoutItem[]; total: number; limited?: boolean }>(
+        '/workouts/history?limit=50'
+      );
       setItems(res.workouts);
       setTotal(res.total);
+      setLimited(res.limited ?? false);
     } catch {
       setItems([]);
     } finally {
@@ -90,6 +94,15 @@ export default function HistoryScreen() {
               Aún no hay entrenamientos. ¡Empieza hoy! 💪
             </ThemedText>
           </ThemedView>
+        }
+        ListFooterComponent={
+          limited ? (
+            <Pressable onPress={() => router.push('/premium')} style={styles.lockedFooter}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Mostrando los últimos 5 · Historial completo con Premium ⭐
+              </ThemedText>
+            </Pressable>
+          ) : null
         }
         renderItem={({ item }) => (
           <ThemedView type="backgroundElement" style={styles.card}>
@@ -132,4 +145,5 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   cardInfo: { flex: 1 },
   cardStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  lockedFooter: { alignItems: 'center', paddingVertical: Spacing.three },
 });

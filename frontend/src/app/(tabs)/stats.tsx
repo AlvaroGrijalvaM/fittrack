@@ -1,7 +1,7 @@
 /**
  * Estadísticas: gráfica semanal (L M X J V S D) y resumen general.
  */
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
@@ -22,9 +22,10 @@ type WeeklyDay = {
 };
 
 type Overview = {
+  premium: boolean;
   week: { workouts: number; minutes: number; distance_m: number; calories: number };
-  month: { workouts: number; minutes: number };
-  totals: { workouts: number; minutes: number; distance_m: number; calories: number };
+  month: { workouts: number; minutes: number } | null;
+  totals: { workouts: number; minutes?: number; distance_m?: number; calories?: number };
   streak: number;
 };
 
@@ -97,14 +98,28 @@ export default function StatsScreen() {
 
         {overview ? (
           <View style={styles.grid}>
+            {/* Básicas (plan gratuito) */}
             <StatCard label="Racha actual" value={`${overview.streak} 🔥`} />
             <StatCard label="Entrenamientos / semana" value={String(overview.week.workouts)} />
             <StatCard label="Minutos / semana" value={String(overview.week.minutes)} />
-            <StatCard label="Entrenamientos / mes" value={String(overview.month.workouts)} />
             <StatCard label="Total entrenamientos" value={String(overview.totals.workouts)} />
-            <StatCard label="Distancia total" value={`${(overview.totals.distance_m / 1000).toFixed(2)} km`} />
-            <StatCard label="Tiempo total" value={`${Math.round(overview.totals.minutes / 60)} h ${overview.totals.minutes % 60} m`} />
-            <StatCard label="Calorías totales" value={String(overview.totals.calories)} />
+            {/* Avanzadas (Premium) */}
+            {overview.premium && overview.month ? (
+              <>
+                <StatCard label="Entrenamientos / mes" value={String(overview.month.workouts)} />
+                <StatCard label="Distancia total" value={`${((overview.totals.distance_m ?? 0) / 1000).toFixed(2)} km`} />
+                <StatCard label="Tiempo total" value={`${Math.round((overview.totals.minutes ?? 0) / 60)} h ${(overview.totals.minutes ?? 0) % 60} m`} />
+                <StatCard label="Calorías totales" value={String(overview.totals.calories ?? 0)} />
+              </>
+            ) : (
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                style={styles.lockedNote}
+                onPress={() => router.push('/premium')}>
+                🔒 Desbloquea estadísticas avanzadas con Premium ⭐
+              </ThemedText>
+            )}
           </View>
         ) : null}
       </ScrollView>
@@ -140,4 +155,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statLabel: { fontSize: 12 },
+  lockedNote: { flexBasis: '100%', textAlign: 'center', paddingVertical: Spacing.two },
 });

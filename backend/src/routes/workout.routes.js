@@ -127,11 +127,15 @@ router.post(
   })
 );
 
-// GET /api/workouts/history
+// GET /api/workouts/history — plan gratuito: últimos 5; Premium: historial completo
 router.get(
   '/history',
   asyncHandler(async (req, res) => {
-    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    const [u] = await pool.query('SELECT premium FROM users WHERE id = ? LIMIT 1', [req.user.userId]);
+    const premium = !!(u[0] && u[0].premium);
+
+    const requested = Math.min(Number(req.query.limit) || 20, 100);
+    const limit = premium ? requested : Math.min(requested, 5);
     const offset = Math.max(Number(req.query.offset) || 0, 0);
     const [rows] = await pool.query(
       `SELECT id, routine_id, name, activity_type, status, started_at, ended_at,
@@ -146,7 +150,15 @@ router.get(
       `SELECT COUNT(*) AS total FROM workouts WHERE user_id = ? AND status = 'completed'`,
       [req.user.userId]
     );
-    res.json({ workouts: rows, total: totalRow[0].total, limit, offset });
+    const total = totalRow[0].total;
+    res.json({
+      workouts: rows,
+      total,
+      limit,
+      offset,
+      premium,
+      limited: !premium && total > rows.length,
+    });
   })
 );
 

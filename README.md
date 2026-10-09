@@ -91,6 +91,9 @@ App                               Backend                        Stripe (test)
 4. Webhook opcional (respaldo `payment_intent.succeeded`):
    `stripe listen --forward-to localhost:3000/api/subscriptions/webhook` y guarda el
    secreto en `STRIPE_WEBHOOK_SECRET`.
+5. Premium desbloquea: crear rutinas personalizadas, las 2 rutinas avanzadas,
+   historial completo (el plan gratuito ve los últimos 5) y estadísticas avanzadas.
+
 ## Notificaciones push
 
 - La app registra su token Expo (`user_push_tokens`) y el usuario configura hora y tipos en Perfil.
@@ -203,14 +206,3 @@ npx eas-cli build --platform ios --profile production   # nube: entrega el .ipa
 ```
 Local en Mac: `npx expo prebuild --platform ios` → abrir `ios/*.xcworkspace` en Xcode →
 *Signing & Capabilities* con tu Team → *Product → Archive → Distribute App*.
-
-## Alcance del prototipo
-
-**Sí**: registro e inicio de sesión (JWT), 19 tablas en MySQL, 8 rutinas seed, ejecución de
-entrenamientos con series, 4 sensores (acelerómetro, giroscopio, magnetómetro, GPS), metas,
-racha y estadísticas, notificaciones push con preferencias y canal en Android, y pago
-Premium con **Stripe en modo test** (idempotencia y webhook opcional).
-
-**No en esta etapa**: pagos reales (claves live), mapa con la ruta, reconocimiento automático de
-más ejercicios, rutinas personalizadas asistidas, sistema de amigos/ranking, integración con
-wearables, machine learning ni ejecución en segundo plano.
