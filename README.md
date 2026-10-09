@@ -97,6 +97,22 @@ App                               Backend                        Stripe (test)
 - `node-cron` crea el recordatorio diario y envía lo pendiente con **expo-server-sdk**.
 - Sin `EXPO_ACCESS_TOKEN`, las entregas se marcan como simuladas (el flujo completo es igual).
 
+## Credenciales
+
+| Credencial | Dónde va | Estado |
+| --- | --- | --- |
+| MySQL, `JWT_SECRET` | `backend/.env` | ✅ configurados |
+| `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` | `backend/.env` | ✅ configuradas (modo test) |
+| `EXPO_PUBLIC_API_URL` + clave pública Stripe | `frontend/.env` → `eas env:push` | ✅ configuradas (entornos `development`/`preview`) |
+| `EXPO_ACCESS_TOKEN` | `backend/.env` | ❌ crear en [expo.dev](https://expo.dev) → Access Tokens (para push real) |
+| Service account de FCM | [expo.dev](https://expo.dev) → Credentials → Android | ❌ además del token, obligatorio para recibir push en Android (Firebase → Project settings → Service accounts) |
+| `STRIPE_WEBHOOK_SECRET` | `backend/.env` | ⬜ solo para probar el webhook: `stripe listen --forward-to localhost:3000/api/subscriptions/webhook` |
+| URL pública de la API | `eas env:create --environment production …` | ⬜ cuando se despliegue fuera de la LAN (Render/Railway) |
+| Cuenta Apple Developer | — | ⬜ solo para builds de iOS |
+
+Sin `EXPO_ACCESS_TOKEN` y FCM todo lo demás funciona: los envíos se registran
+como demostración y la app usa recordatorios locales.
+
 ## Requisitos
 
 - Node.js ≥ 22 y MySQL 8.0+ en ejecución (puerto 3306)
@@ -156,6 +172,7 @@ npx expo start --dev-client        # Metro: la app se conecta a tu PC
 - Perfil `preview`: genera un APK sin development client (para compartir la interfaz sin Metro).
 - Push real en Android: sube las credenciales FCM de tu proyecto Firebase en
   [expo.dev](https://expo.dev) → Credentials → Android (los builds funcionan sin ellas).
+
 ## Construir el APK (Android)
 
 Identificadores configurados: `android.package` = `com.utslrc.fittrack`.
@@ -186,3 +203,14 @@ npx eas-cli build --platform ios --profile production   # nube: entrega el .ipa
 ```
 Local en Mac: `npx expo prebuild --platform ios` → abrir `ios/*.xcworkspace` en Xcode →
 *Signing & Capabilities* con tu Team → *Product → Archive → Distribute App*.
+
+## Alcance del prototipo
+
+**Sí**: registro e inicio de sesión (JWT), 19 tablas en MySQL, 8 rutinas seed, ejecución de
+entrenamientos con series, 4 sensores (acelerómetro, giroscopio, magnetómetro, GPS), metas,
+racha y estadísticas, notificaciones push con preferencias y canal en Android, y pago
+Premium con **Stripe en modo test** (idempotencia y webhook opcional).
+
+**No en esta etapa**: pagos reales (claves live), mapa con la ruta, reconocimiento automático de
+más ejercicios, rutinas personalizadas asistidas, sistema de amigos/ranking, integración con
+wearables, machine learning ni ejecución en segundo plano.
