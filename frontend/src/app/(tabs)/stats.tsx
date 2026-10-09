@@ -6,9 +6,10 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/services/api';
 
@@ -67,8 +68,8 @@ export default function StatsScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText style={styles.logo}>STATS</ThemedText>
-        <ThemedText type="subtitle">Tu progreso 📊</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>STATS</ThemedText>
+        <ThemedText type="subtitle">Tu progreso</ThemedText>
 
         {error ? <ThemedText themeColor="danger">{error}</ThemedText> : null}
 
@@ -80,6 +81,8 @@ export default function StatsScreen() {
               barWidth={26}
               spacing={18}
               frontColor={theme.primary}
+              xAxisLabelTextStyle={{ color: theme.text }}
+              yAxisTextStyle={{ color: theme.textSecondary }}
               noOfSections={4}
               yAxisThickness={0}
               xAxisThickness={0}
@@ -134,6 +137,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
       <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>
         {label}
       </ThemedText>
+      <Divider />
       <ThemedText type="smallBold">{value}</ThemedText>
     </ThemedView>
   );
@@ -143,13 +147,12 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: Spacing.four, gap: Spacing.three },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
-  card: { borderRadius: 16, padding: Spacing.three, gap: Spacing.three },
+  card: { borderRadius: 0, padding: Spacing.three, gap: Spacing.three },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   statCard: {
     flexBasis: '47%',
     flexGrow: 1,
-    borderRadius: 12,
+    borderRadius: 0,
     padding: Spacing.three,
     gap: Spacing.one,
     borderWidth: 1,

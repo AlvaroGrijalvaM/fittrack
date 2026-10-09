@@ -6,18 +6,22 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, TextInput } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/services/api';
-import { registerPushToken, scheduleLocalReminder } from '@/services/notifications';
+import { cancelLocalReminder, registerPushToken, scheduleLocalReminder } from '@/services/notifications';
 
 type Preferences = {
   push_enabled: boolean;
   workout_reminders_enabled: boolean;
   workout_reminder_time: string;
+  goal_completed_enabled: boolean;
+  streak_enabled: boolean;
+  weekly_summary_enabled: boolean;
 };
 
 export default function ProfileScreen() {
@@ -52,6 +56,8 @@ export default function ProfileScreen() {
       await api.put<{ preferences: Preferences }>('/notifications/preferences', next);
       if (next.workout_reminders_enabled) {
         scheduleLocalReminder(next.workout_reminder_time).catch(() => {});
+      } else {
+        cancelLocalReminder().catch(() => {});
       }
     } catch {
       Alert.alert('Error', 'No se pudo guardar la preferencia');
@@ -84,7 +90,7 @@ export default function ProfileScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText style={styles.logo}>PERFIL</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>PERFIL</ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.card}>
           <ThemedView style={styles.userRow}>
@@ -96,6 +102,7 @@ export default function ProfileScreen() {
               </ThemedText>
             </ThemedView>
           </ThemedView>
+          <Divider />
           <ThemedText type="small" themeColor="textSecondary">
             Nivel: {user?.level ?? '-'} · Meta: {user?.workouts_per_week ?? 3} días/semana
           </ThemedText>
@@ -105,7 +112,8 @@ export default function ProfileScreen() {
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="smallBold">Notificaciones 🔔</ThemedText>
+          <ThemedText type="smallBold">Notificaciones</ThemedText>
+          <Divider />
           <ThemedView style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
             <ThemedText type="small">Notificaciones push</ThemedText>
             <Switch
@@ -141,12 +149,41 @@ export default function ProfileScreen() {
               placeholderTextColor={theme.textSecondary}
             />
           </ThemedView>
+          <ThemedText type="smallBold">Tipos de notificación</ThemedText>
+          <ThemedView style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
+            <ThemedText type="small">Metas completadas</ThemedText>
+            <Switch
+              value={prefs?.goal_completed_enabled ?? true}
+              onValueChange={(v) => updatePrefs({ goal_completed_enabled: v })}
+              trackColor={{ false: theme.backgroundSelected, true: theme.primary }}
+              thumbColor={theme.background}
+            />
+          </ThemedView>
+          <ThemedView style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
+            <ThemedText type="small">Rachas de entrenamiento</ThemedText>
+            <Switch
+              value={prefs?.streak_enabled ?? true}
+              onValueChange={(v) => updatePrefs({ streak_enabled: v })}
+              trackColor={{ false: theme.backgroundSelected, true: theme.primary }}
+              thumbColor={theme.background}
+            />
+          </ThemedView>
+          <ThemedView style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
+            <ThemedText type="small">Resumen semanal</ThemedText>
+            <Switch
+              value={prefs?.weekly_summary_enabled ?? false}
+              onValueChange={(v) => updatePrefs({ weekly_summary_enabled: v })}
+              trackColor={{ false: theme.backgroundSelected, true: theme.primary }}
+              thumbColor={theme.background}
+            />
+          </ThemedView>
           <Pressable style={[styles.secondaryButton, { borderColor: theme.primary }]} onPress={onTestPush}>
             <ThemedText style={{ color: theme.primaryDark, fontWeight: '700' }}>Probar notificación</ThemedText>
           </Pressable>
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.card}>
+          <MenuLink label="Centro de notificaciones" onPress={() => router.push('/notifications')} />
           <MenuLink label="Historial de entrenamientos" onPress={() => router.push('/history')} />
           <MenuLink label="Demo de sensores (acelerómetro, giroscopio, brújula)" onPress={() => router.push('/sensor')} />
           <MenuLink label="Entrenamiento al aire libre (GPS)" onPress={() => router.push('/outdoor')} />
@@ -168,7 +205,7 @@ function MenuLink({ label, onPress }: { label: string; onPress: () => void }) {
       onPress={onPress}
       style={{ borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.backgroundSelected }}>
       <ThemedView style={styles.row}>
-        <ThemedText>{label}</ThemedText>
+        <ThemedText style={{ flex: 1 }}>{label}</ThemedText>
         <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
       </ThemedView>
     </Pressable>
@@ -178,8 +215,7 @@ function MenuLink({ label, onPress }: { label: string; onPress: () => void }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three, paddingBottom: Spacing.six },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
-  card: { borderRadius: 16, padding: Spacing.three, gap: Spacing.two },
+  card: { borderRadius: 0, padding: Spacing.three, gap: Spacing.two },
   userRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
   userInfo: { flex: 1 },
   row: {
@@ -188,10 +224,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
     paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.two,
   },
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: 999,
+    borderRadius: 0,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.one,
     fontWeight: '700',
@@ -199,12 +236,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
   },
   timeInput: {
-    borderRadius: 8,
+    borderRadius: 0,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
     minWidth: 72,
     textAlign: 'center',
   },
-  secondaryButton: { borderRadius: 12, borderWidth: 1, paddingVertical: Spacing.two, alignItems: 'center', marginTop: Spacing.two },
-  logoutButton: { borderRadius: 12, borderWidth: 1, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.one },
+  secondaryButton: { borderRadius: 0, borderWidth: 1, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, alignItems: 'center', marginTop: Spacing.two },
+  logoutButton: { borderRadius: 0, borderWidth: 1, paddingHorizontal: Spacing.three, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.one },
 });

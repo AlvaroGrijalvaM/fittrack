@@ -2,7 +2,7 @@
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export const Colors = {
   light: {
@@ -65,3 +65,16 @@ export const Spacing = {
   five: 32,
   six: 64,
 } as const;
+
+/** Titulo de pantalla en banda verde con texto carbon (diseno rectangular). */
+export const TitleStyles = StyleSheet.create({
+  screenTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 3,
+    color: '#111827',
+    backgroundColor: '#22C55E',
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+});

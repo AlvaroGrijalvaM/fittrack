@@ -63,7 +63,7 @@ Registro → Inicio (resumen de la semana) → Elegir rutina → Iniciar entrena
 | Sensores / GPS | `POST /api/sensors/workouts/:id/sensor-data` · `PUT /api/workouts/:id/gps` · `/points` |
 | Metas / stats | CRUD `/api/goals` · `GET /api/stats/weekly` · `/overview` · `/streak` |
 | Pagos | `GET /api/subscriptions/plan` · `/config` · `POST /payment-sheet` · `/verify` · `/cancel` · `/webhook` |
-| Notificaciones | `GET/PUT /api/notifications/preferences` · `POST /token` · `/test` · historial |
+| Notificaciones | `GET/PUT /api/notifications/preferences` · `POST /token` · `/test` · `GET /history` · `PATCH /:id/read` · `POST /history/read-all` |
 
 
 ## Pagos con Stripe (modo de prueba)
@@ -96,8 +96,14 @@ App                               Backend                        Stripe (test)
 
 ## Notificaciones push
 
-- La app registra su token Expo (`user_push_tokens`) y el usuario configura hora y tipos en Perfil.
-- `node-cron` crea el recordatorio diario y envía lo pendiente con **expo-server-sdk**.
+- La app registra su token Expo (`user_push_tokens`) al iniciar sesión y el usuario configura
+  hora y tipos en Perfil (recordatorio, metas, rachas y resumen semanal).
+- `node-cron` crea el recordatorio diario **a la hora local del usuario** (`timezone`), el
+  resumen semanal los lunes y envía lo pendiente con **expo-server-sdk**.
+- La bandeja `/notifications` muestra el historial (`GET /history`) con no-leídas y permite
+  marcar como leídas (`PATCH /:id/read`, `POST /history/read-all`).
+- Completar un entrenamiento genera notificación de meta (si `goal_completed_enabled`) y de
+  racha en hitos 3/7/14/30/60/100 días (si `streak_enabled`).
 - Sin `EXPO_ACCESS_TOKEN`, las entregas se marcan como simuladas (el flujo completo es igual).
 
 ## Credenciales

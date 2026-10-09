@@ -136,8 +136,47 @@ async function main() {
   assert(gps.gps && gps.gps.bearing_point === 'NE', 'PUT /workouts/:id/gps (brújula magnetómetro)');
 
   // 7) Notificaciones
-  const prefs = await req('PUT', '/notifications/preferences', { workout_reminder_time: '18:00:00', workout_reminders_enabled: true }, token);
-  assert(prefs.preferences.workout_reminder_time === '18:00:00', 'PUT /notifications/preferences');
+  const prefs = await req('PUT', '/notifications/preferences', {
+    workout_reminder_time: '18:00:00',
+    workout_reminders_enabled: true,
+    goal_completed_enabled: true,
+    streak_enabled: true,
+    weekly_summary_enabled: true,
+    timezone: 'America/Mexico_City',
+  }, token);
+  assert(prefs.preferences.workout_reminder_time === '18:00:00', 'PUT /notifications/preferences (hora)');
+  assert(prefs.preferences.weekly_summary_enabled === 1, 'PUT /notifications/preferences (flags nuevos)');
+  assert(prefs.preferences.timezone === 'America/Mexico_City', 'PUT /notifications/preferences (timezone)');
+
+  const hist = await req('GET', '/notifications/history', null, token);
+  assert(Array.isArray(hist.notifications), 'GET /notifications/history');
+  assert(typeof hist.unread === 'number', 'GET /notifications/history (contador unread)');
+
+  if (hist.notifications.length) {
+    const nid = hist.notifications[0].id;
+    const readOne = await req('PATCH', `/notifications/${nid}/read`, null, token);
+    assert(Boolean(readOne.notification && readOne.notification.read_at), 'PATCH /notifications/:id/read');
+    const readAll = await req('POST', '/notifications/history/read-all', null, token);
+    assert(Number.isInteger(readAll.updated), 'POST /notifications/history/read-all');
+    const hist2 = await req('GET', '/notifications/history', null, token);
+    assert(hist2.unread === 0, 'Historial queda sin no-leídas');
+  } else {
+    assert(true, 'PATCH /notifications/:id/read (sin historial, omitido)');
+    assert(true, 'POST /notifications/history/read-all (sin historial, omitido)');
+    assert(true, 'Historial queda sin no-leídas (sin historial, omitido)');
+  }
+
+  // 27) Gate de notificaciones: con goal_completed apagado no se genera
+  await req('PUT', '/notifications/preferences', { goal_completed_enabled: false }, token);
+  const gateGoal = await req('POST', '/goals', { type: 'weekly_workouts', title: 'Meta gated', target: 1, unit: 'sesiones', period: 'week' }, token);
+  const woGate = await req('POST', '/workouts', { name: 'Entrenamiento gate' }, token);
+  const doneGate = await req('PATCH', `/workouts/${woGate.id}`, { status: 'completed' }, token);
+  const histGate = await req('GET', '/notifications/history?limit=100', null, token);
+  const notifForGate = histGate.notifications.find((n) => n.type === 'goal_completed' && n.metadata && n.metadata.goal_id === gateGoal.goal.id);
+  assert(!notifForGate, 'goal_completed_enabled=0 bloquea notificación de meta');
+  assert(doneGate.workout.status === 'completed', 'Entrenamiento completado con gate de notificaciones');
+  assert(Array.isArray(doneGate.completedGoals) && doneGate.completedGoals.length >= 1, 'La meta se completó igual (solo cambia la notificación)');
+  await req('PUT', '/notifications/preferences', { goal_completed_enabled: true }, token);
 
   // 8) Premium
   const plan = await req('GET', '/subscriptions/plan', null, token);

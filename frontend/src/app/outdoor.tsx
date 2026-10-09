@@ -6,9 +6,10 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useGPSActivity } from '@/hooks/useGPSActivity';
 import { useMagnetometerHeading } from '@/hooks/useMagnetometerHeading';
 import { useTheme } from '@/hooks/use-theme';
@@ -79,8 +80,8 @@ export default function OutdoorScreen() {
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <ThemedText themeColor="textSecondary">← Volver</ThemedText>
         </Pressable>
-        <ThemedText style={styles.logo}>OUTDOOR</ThemedText>
-        <ThemedText type="subtitle">🏃 Carrera</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>OUTDOOR</ThemedText>
+        <ThemedText type="subtitle">Carrera</ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.compassCard}>
           <View style={[styles.compassCircle, { borderColor: theme.primary }]}>
@@ -109,6 +110,7 @@ export default function OutdoorScreen() {
               <ThemedText type="small" themeColor="textSecondary">km/h</ThemedText>
             </View>
           </View>
+          <Divider />
           <ThemedText type="small" themeColor="textSecondary">
             {gps.points.length} puntos de ruta registrados
           </ThemedText>
@@ -140,25 +142,24 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.two, padding: Spacing.four },
   content: { padding: Spacing.four, gap: Spacing.three, paddingBottom: Spacing.six },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
   backLink: { alignSelf: 'flex-start', paddingVertical: Spacing.one },
-  compassCard: { borderRadius: 16, padding: Spacing.three, alignItems: 'center', gap: Spacing.two },
+  compassCard: { borderRadius: 0, padding: Spacing.three, alignItems: 'center', gap: Spacing.two },
   compassCircle: {
     width: 140,
     height: 140,
-    borderRadius: 70,
+    borderRadius: 70, // círculo real de la brújula
     borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.one,
   },
-  compassPoint: { fontSize: 40, fontWeight: '800' },
-  statsCard: { borderRadius: 16, padding: Spacing.three, gap: Spacing.three },
+  compassPoint: { fontSize: 40, lineHeight: 52, fontWeight: '800' },
+  statsCard: { borderRadius: 0, padding: Spacing.three, gap: Spacing.three },
   statRow: { flexDirection: 'row', justifyContent: 'space-around' },
   stat: { alignItems: 'center', gap: Spacing.one },
-  statValue: { fontSize: 24, fontWeight: '800' },
-  startButton: { borderRadius: 12, paddingVertical: Spacing.three, alignItems: 'center' },
-  stopButton: { borderRadius: 12, paddingVertical: Spacing.three, alignItems: 'center' },
+  statValue: { fontSize: 24, lineHeight: 32, fontWeight: '800' },
+  startButton: { borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center' },
+  stopButton: { borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center' },
   buttonText: { color: '#FFFFFF', fontWeight: '800', letterSpacing: 1 },
   centerText: { textAlign: 'center' },
 });

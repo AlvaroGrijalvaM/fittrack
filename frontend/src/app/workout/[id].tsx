@@ -7,9 +7,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useRepCounter } from '@/hooks/useRepCounter';
 import { api } from '@/services/api';
@@ -111,7 +112,7 @@ export default function WorkoutScreen() {
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <ThemedText themeColor="textSecondary">← Volver</ThemedText>
         </Pressable>
-        <ThemedText style={styles.logo}>ENTRENAMIENTO</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>ENTRENAMIENTO</ThemedText>
         <ThemedText type="subtitle">{detail.workout.name}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           🎯 cuenta: {rep.count} reps (acelerómetro)
@@ -176,6 +177,8 @@ function ExerciseRow({
           {done}/{ex.planned_sets} series
         </ThemedText>
       </ThemedView>
+
+      <Divider />
 
       <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
         <View style={[styles.fill, { width: `${percent}%` as `${number}%`, backgroundColor: theme.primary }]} />
@@ -242,21 +245,20 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: Spacing.four, gap: Spacing.three, paddingBottom: Spacing.six },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
   backLink: { alignSelf: 'flex-start', paddingVertical: Spacing.one },
-  exerciseCard: { borderRadius: 16, padding: Spacing.three, gap: Spacing.two },
+  exerciseCard: { borderRadius: 0, padding: Spacing.three, gap: Spacing.two },
   exerciseHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.two },
   exerciseName: { flex: 1, fontSize: 17 },
-  track: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 4 },
+  track: { height: 8, borderRadius: 0, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: 0 },
   sensorBox: { alignItems: 'center', gap: Spacing.one, paddingVertical: Spacing.two },
-  sensorCount: { fontSize: 56, fontWeight: '800', color: '#22C55E' },
-  recordButton: { borderRadius: 10, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, alignItems: 'center', flexShrink: 1 },
+  sensorCount: { fontSize: 56, lineHeight: 68, fontWeight: '800', color: '#22C55E' },
+  recordButton: { borderRadius: 0, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, alignItems: 'center', flexShrink: 1 },
   recordText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   manualRow: { flexDirection: 'row', gap: Spacing.two, alignItems: 'center' },
-  repsInput: { borderRadius: 10, paddingHorizontal: Spacing.two, paddingVertical: Spacing.two, minWidth: 72, fontSize: 15, textAlign: 'center' },
+  repsInput: { borderRadius: 0, paddingHorizontal: Spacing.two, paddingVertical: Spacing.two, minWidth: 72, fontSize: 15, textAlign: 'center' },
   finishRow: { flexDirection: 'row', gap: Spacing.two, marginTop: Spacing.one },
-  cancelButton: { flex: 1, borderRadius: 12, borderWidth: 1, paddingVertical: Spacing.three, alignItems: 'center' },
-  finishButton: { flex: 2, borderRadius: 12, paddingVertical: Spacing.three, alignItems: 'center' },
+  cancelButton: { flex: 1, borderRadius: 0, borderWidth: 1, paddingVertical: Spacing.three, alignItems: 'center' },
+  finishButton: { flex: 2, borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center' },
   finishText: { color: '#FFFFFF', fontWeight: '800', letterSpacing: 1 },
 });

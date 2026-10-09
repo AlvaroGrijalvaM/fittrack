@@ -72,3 +72,31 @@ export async function scheduleLocalReminder(time: string): Promise<void> {
     console.warn('No se pudo agendar el recordatorio local', err);
   }
 }
+
+/** Cancela el recordatorio local (cuando el usuario lo desactiva). */
+export async function cancelLocalReminder(): Promise<void> {
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  } catch (err) {
+    console.warn('No se pudo cancelar el recordatorio local', err);
+  }
+}
+
+/**
+ * Sincroniza el recordatorio local con las preferencias del backend.
+ * Se llama al iniciar sesión y al arrancar la app con sesión existente.
+ */
+export async function syncLocalReminder(): Promise<void> {
+  try {
+    const res = await api.get<{ preferences: { workout_reminders_enabled: boolean; workout_reminder_time: string } }>(
+      '/notifications/preferences'
+    );
+    if (res.preferences.workout_reminders_enabled) {
+      await scheduleLocalReminder(res.preferences.workout_reminder_time || '18:00:00');
+    } else {
+      await cancelLocalReminder();
+    }
+  } catch (err) {
+    console.warn('No se pudo sincronizar el recordatorio local', err);
+  }
+}

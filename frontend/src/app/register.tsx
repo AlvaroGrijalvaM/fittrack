@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -98,7 +98,7 @@ export default function RegisterScreen() {
   return (
     <ThemedView style={{ flex: 1, paddingTop: insets.top + Spacing.four }}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <ThemedText style={styles.logo}>FITTRACK</ThemedText>
+        <ThemedText style={[TitleStyles.screenTitle, { textAlign: 'center' }]}>FITTRACK</ThemedText>
         <ThemedText type="subtitle">Crea tu cuenta</ThemedText>
         <ThemedText themeColor="textSecondary">
           Cuéntanos de ti para preparar tus primeros entrenamientos.
@@ -144,13 +144,12 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   content: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.six, gap: Spacing.two },
-  logo: { fontSize: 30, fontWeight: '800', letterSpacing: 3, color: '#22C55E', textAlign: 'center' },
-  input: { borderRadius: 12, paddingHorizontal: Spacing.three, paddingVertical: Spacing.three, fontSize: 16 },
+  input: { borderRadius: 0, paddingHorizontal: Spacing.three, paddingVertical: Spacing.three, fontSize: 16 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  chip: { borderRadius: 20, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
+  chip: { borderRadius: 0, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
   chipText: { color: '#6B7280' },
   chipActiveText: { color: '#FFFFFF', fontWeight: '700' },
-  button: { borderRadius: 12, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.two },
+  button: { borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.two },
   buttonText: { color: '#FFFFFF', fontWeight: '700' },
   error: { textAlign: 'center' },
   linkText: { textAlign: 'center', paddingVertical: Spacing.three },

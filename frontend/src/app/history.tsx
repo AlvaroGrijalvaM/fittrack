@@ -6,9 +6,10 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/services/api';
 
@@ -81,7 +82,7 @@ export default function HistoryScreen() {
         keyExtractor={(item) => String(item.id)}
         ListHeaderComponent={
           <View style={styles.header}>
-            <ThemedText style={styles.logo}>HISTORIAL</ThemedText>
+            <ThemedText style={TitleStyles.screenTitle}>HISTORIAL</ThemedText>
             <ThemedText type="subtitle">Tus entrenamientos</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {total} entrenamientos completados
@@ -119,6 +120,7 @@ export default function HistoryScreen() {
                 </ThemedText>
               </View>
             </View>
+            <Divider />
             <View style={styles.cardStats}>
               <ThemedText type="small" themeColor="textSecondary">
                 ⏱ {formatDuration(item.duration_seconds)}
@@ -139,9 +141,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: Spacing.four, gap: Spacing.three, paddingBottom: Spacing.six },
   header: { gap: Spacing.one },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
-  empty: { borderRadius: 16, padding: Spacing.four, alignItems: 'center' },
-  card: { borderRadius: 16, padding: Spacing.three, gap: Spacing.two },
+  empty: { borderRadius: 0, padding: Spacing.four, alignItems: 'center' },
+  card: { borderRadius: 0, padding: Spacing.three, gap: Spacing.two },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   cardInfo: { flex: 1 },
   cardStats: { flexDirection: 'row', justifyContent: 'space-between' },

@@ -8,6 +8,7 @@ const { asyncHandler } = require('../utils/asyncHandler');
 const { HttpError } = require('../utils/httpError');
 const { authRequired } = require('../middleware/auth');
 const pushService = require('../services/push.service');
+const cronService = require('../services/cron.service');
 
 const router = express.Router();
 router.use(authRequired);
@@ -17,13 +18,17 @@ const tokenSchema = z.object({
   platform: z.enum(['android', 'ios', 'web']).nullable().optional(),
 });
 
+const boolish = z
+  .union([z.boolean(), z.literal(0), z.literal(1)])
+  .transform((v) => v === true || v === 1);
+
 const prefsSchema = z.object({
-  push_enabled: z.boolean().optional(),
-  workout_reminders_enabled: z.boolean().optional(),
+  push_enabled: boolish.optional(),
+  workout_reminders_enabled: boolish.optional(),
   workout_reminder_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).optional(),
-  goal_completed_enabled: z.boolean().optional(),
-  streak_enabled: z.boolean().optional(),
-  weekly_summary_enabled: z.boolean().optional(),
+  goal_completed_enabled: boolish.optional(),
+  streak_enabled: boolish.optional(),
+  weekly_summary_enabled: boolish.optional(),
   timezone: z.string().max(64).optional(),
 });
 
@@ -92,20 +97,75 @@ router.put(
       'SELECT * FROM notification_preferences WHERE user_id = ? LIMIT 1',
       [req.user.userId]
     );
-    res.json({ preferences: rows[0] });
+    const prefs = rows[0];
+
+    // Si cambió la hora, la zona o se activaron los recordatorios, se reagenda
+    // el pendiente con el nuevo horario (zona horaria del usuario).
+    const reminderChanged =
+      d.workout_reminder_time !== undefined ||
+      d.workout_reminders_enabled !== undefined ||
+      d.timezone !== undefined;
+    if (reminderChanged && prefs) {
+      await pool.query(
+        `DELETE FROM notifications
+          WHERE user_id = ? AND type = 'workout_reminder' AND sent_at IS NULL`,
+        [req.user.userId]
+      );
+      if (prefs.workout_reminders_enabled && prefs.push_enabled) {
+        await cronService.createPendingReminder(
+          req.user.userId,
+          String(prefs.workout_reminder_time || '18:00:00').slice(0, 5),
+          prefs.timezone
+        );
+      }
+    }
+
+    res.json({ preferences: prefs });
   })
 );
 
-// GET /api/notifications/history
+// GET /api/notifications/history — bandeja de notificaciones del usuario
 router.get(
   '/history',
   asyncHandler(async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 20, 100);
     const [rows] = await pool.query(
-      'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+      'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ?',
       [req.user.userId, limit]
     );
-    res.json({ notifications: rows });
+    const [cnt] = await pool.query(
+      'SELECT COUNT(*) AS unread FROM notifications WHERE user_id = ? AND read_at IS NULL',
+      [req.user.userId]
+    );
+    res.json({ notifications: rows, unread: Number(cnt[0].unread) || 0 });
+  })
+);
+
+// PATCH /api/notifications/:id/read — marcar una notificación como leída
+router.patch(
+  '/:id/read',
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) throw new HttpError(400, 'Identificador inválido');
+    const [result] = await pool.query(
+      'UPDATE notifications SET read_at = COALESCE(read_at, NOW()) WHERE id = ? AND user_id = ?',
+      [id, req.user.userId]
+    );
+    if (!result.affectedRows) throw new HttpError(404, 'Notificación no encontrada');
+    const [rows] = await pool.query('SELECT * FROM notifications WHERE id = ? LIMIT 1', [id]);
+    res.json({ notification: rows[0] });
+  })
+);
+
+// POST /api/notifications/read-all — marcar todo el historial como leído
+router.post(
+  '/history/read-all',
+  asyncHandler(async (req, res) => {
+    const [result] = await pool.query(
+      'UPDATE notifications SET read_at = NOW() WHERE user_id = ? AND read_at IS NULL',
+      [req.user.userId]
+    );
+    res.json({ updated: result.affectedRows });
   })
 );
 

@@ -6,9 +6,10 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/services/api';
 
@@ -35,12 +36,18 @@ export default function HomeScreen() {
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unread, setUnread] = useState(0);
 
   const load = useCallback(async () => {
     try {
       setError(null);
       const res = await api.get<Dashboard>('/users/me/dashboard');
       setDash(res);
+      // Contador de notificaciones sin leer (no bloquea el dashboard)
+      api
+        .get<{ unread: number }>('/notifications/history?limit=1')
+        .then((n) => setUnread(n.unread ?? 0))
+        .catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar tu progreso');
     } finally {
@@ -76,13 +83,27 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText style={styles.logo}>FITTRACK</ThemedText>
-        <ThemedText type="subtitle">¡Hola, {dash?.user.name ?? 'atleta'}! 👋</ThemedText>
+        <View style={styles.titleRow}>
+          <ThemedText style={TitleStyles.screenTitle}>FITTRACK</ThemedText>
+          <Pressable
+            onPress={() => router.push('/notifications')}
+            style={[styles.bell, { backgroundColor: theme.backgroundElement }]}
+            accessibilityLabel="Centro de notificaciones">
+            <Ionicons name={unread > 0 ? 'notifications' : 'notifications-outline'} size={22} color={theme.primaryDark} />
+            {unread > 0 ? (
+              <View style={[styles.badge, { backgroundColor: theme.danger }]}>
+                <ThemedText style={styles.badgeText}>{unread > 9 ? '9+' : String(unread)}</ThemedText>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
+        <ThemedText type="subtitle">¡Hola, {dash?.user.name ?? 'atleta'}!</ThemedText>
 
         {error ? <ThemedText themeColor="danger">{error}</ThemedText> : null}
 
         <ThemedView type="backgroundElement" style={styles.card}>
           <ThemedText type="smallBold">Tu progreso esta semana</ThemedText>
+          <Divider />
           <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
             <View style={[styles.fill, { width: weekPercent, backgroundColor: theme.primary }]} />
           </View>
@@ -95,6 +116,7 @@ export default function HomeScreen() {
 
         <ThemedView type="backgroundElement" style={styles.card}>
           <ThemedText type="smallBold">Entrenamiento de hoy</ThemedText>
+          <Divider />
           {dash?.todayRoutine ? (
             <>
               <ThemedText type="subtitle">{dash.todayRoutine.name}</ThemedText>
@@ -166,13 +188,26 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: Spacing.four, gap: Spacing.three },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
-  card: { borderRadius: 16, padding: Spacing.three, gap: Spacing.two },
-  track: { height: 12, borderRadius: 6, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 6 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
+  bell: { borderRadius: 0, paddingHorizontal: Spacing.two, paddingVertical: Spacing.one },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
+  card: { borderRadius: 0, padding: Spacing.three, gap: Spacing.two },
+  track: { height: 12, borderRadius: 0, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: 0 },
   streak: { color: '#F59E0B', fontWeight: '700', marginTop: Spacing.one },
   primaryButton: {
-    borderRadius: 12,
+    borderRadius: 0,
     paddingVertical: Spacing.three,
     alignItems: 'center',
     marginTop: Spacing.two,
@@ -181,6 +216,6 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: '#FFFFFF', fontWeight: '800', letterSpacing: 1 },
   goalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.two },
   goalTitle: { flex: 1 },
-  quickRow: { flexDirection: 'row', gap: Spacing.two, marginTop: Spacing.one },
-  quick: { flex: 1, borderRadius: 12, padding: Spacing.two, alignItems: 'center', gap: Spacing.one },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, marginTop: Spacing.one },
+  quick: { flexBasis: '47%', flexGrow: 1, borderRadius: 0, padding: Spacing.two, alignItems: 'center', gap: Spacing.one },
 });

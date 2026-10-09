@@ -343,7 +343,7 @@ CREATE TABLE notification_preferences (
 CREATE TABLE notifications (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id       BIGINT UNSIGNED NOT NULL,
-  type          ENUM('workout_reminder','goal_completed','streak','system') NOT NULL,
+  type          ENUM('workout_reminder','goal_completed','streak','weekly_summary','system') NOT NULL,
   title         VARCHAR(150) NOT NULL,
   body          VARCHAR(500) NOT NULL,
   scheduled_for DATETIME NULL,      -- cuándo debe enviarse

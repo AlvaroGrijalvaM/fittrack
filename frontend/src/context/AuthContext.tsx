@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { api, getToken, setToken } from '@/services/api';
+import { registerPushToken, syncLocalReminder } from '@/services/notifications';
 
 export type User = {
   id: number;
@@ -41,6 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token) {
           const res = await api.get<{ user: User }>('/auth/me');
           setUser(res.user);
+          // Re-sincroniza el recordatorio local con las preferencias del backend
+          syncLocalReminder();
         }
       } catch {
         await setToken(null);
@@ -54,12 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post<{ token: string; user: User }>('/auth/login', { email, password });
     await setToken(res.token);
     setUser(res.user);
+    // Push + recordatorio local apenas hay sesión
+    registerPushToken();
+    syncLocalReminder();
   }, []);
 
   const register = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post<{ token: string; user: User }>('/auth/register', data);
     await setToken(res.token);
     setUser(res.user);
+    registerPushToken();
+    syncLocalReminder();
   }, []);
 
   const logout = useCallback(async () => {

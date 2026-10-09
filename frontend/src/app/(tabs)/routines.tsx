@@ -6,9 +6,10 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/services/api';
 
@@ -87,8 +88,8 @@ export default function RoutinesScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText style={styles.logo}>RUTINAS</ThemedText>
-        <ThemedText type="subtitle">Elige tu entrenamiento 🏋️</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>RUTINAS</ThemedText>
+        <ThemedText type="subtitle">Elige tu entrenamiento</ThemedText>
 
         {error ? <ThemedText themeColor="danger">{error}</ThemedText> : null}
 
@@ -109,6 +110,7 @@ export default function RoutinesScreen() {
                     />
                   </Pressable>
                 </ThemedView>
+                <Divider />
                 <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
                   {r.description ?? 'Sin descripción'}
                 </ThemedText>
@@ -136,10 +138,9 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: Spacing.four, gap: Spacing.three },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
-  card: { borderRadius: 16, padding: Spacing.three, gap: Spacing.one },
+  card: { borderRadius: 0, padding: Spacing.three, gap: Spacing.one },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { fontSize: 18, flex: 1 },
-  premiumCard: { borderRadius: 16, padding: Spacing.three, alignItems: 'center' },
+  premiumCard: { borderRadius: 0, padding: Spacing.three, alignItems: 'center' },
   premiumText: { color: '#92400E', fontWeight: '700', textAlign: 'center' },
 });

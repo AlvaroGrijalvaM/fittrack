@@ -8,9 +8,10 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useGyroscopeCalibration, type CalibrationStatus } from '@/hooks/useGyroscopeCalibration';
 import { useMagnetometerHeading } from '@/hooks/useMagnetometerHeading';
 import { useRepCounter } from '@/hooks/useRepCounter';
@@ -57,11 +58,12 @@ export default function SensorScreen() {
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <ThemedText themeColor="textSecondary">← Volver</ThemedText>
         </Pressable>
-        <ThemedText style={styles.logo}>SENSORES</ThemedText>
-        <ThemedText type="subtitle">3 sensores en acción 📱</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>SENSORES</ThemedText>
+        <ThemedText type="subtitle">3 sensores en acción</ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="smallBold">Acelerómetro 📈</ThemedText>
+          <ThemedText type="smallBold">Acelerómetro</ThemedText>
+          <Divider />
           <ThemedText type="small" themeColor="textSecondary">
             Magnitud √(x²+y²+z²) = {magnitude.toFixed(2)} g · x:{accel.x.toFixed(2)}
           </ThemedText>
@@ -74,7 +76,8 @@ export default function SensorScreen() {
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="smallBold">Giroscopio 🔄</ThemedText>
+          <ThemedText type="smallBold">Giroscopio</ThemedText>
+          <Divider />
           <ThemedText type="small" themeColor="textSecondary">
             Rotación combinada = {rotation.toFixed(2)} rad/s
           </ThemedText>
@@ -98,7 +101,8 @@ export default function SensorScreen() {
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="smallBold">Magnetómetro (brújula) 🧭</ThemedText>
+          <ThemedText type="smallBold">Magnetómetro (brújula)</ThemedText>
+          <Divider />
           <View style={styles.compassBox}>
             <ThemedText style={styles.compassPoint}>{mag.point ?? '—'}</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
@@ -123,14 +127,13 @@ export default function SensorScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three, paddingBottom: Spacing.six },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 3, color: '#22C55E' },
   backLink: { alignSelf: 'flex-start', paddingVertical: Spacing.one },
-  card: { borderRadius: 16, padding: Spacing.three, gap: Spacing.two },
+  card: { borderRadius: 0, padding: Spacing.three, gap: Spacing.two },
   counterBox: { alignItems: 'center', paddingVertical: Spacing.two },
-  counterText: { fontSize: 52, fontWeight: '800', color: '#22C55E' },
+  counterText: { fontSize: 52, lineHeight: 64, fontWeight: '800', color: '#22C55E' },
   compassBox: { alignItems: 'center', paddingVertical: Spacing.two },
-  compassPoint: { fontSize: 44, fontWeight: '800' },
-  button: { borderRadius: 12, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.one },
-  buttonSmall: { borderRadius: 10, paddingVertical: Spacing.two, alignItems: 'center', alignSelf: 'flex-start' },
+  compassPoint: { fontSize: 44, lineHeight: 56, fontWeight: '800' },
+  button: { borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.one },
+  buttonSmall: { borderRadius: 0, paddingVertical: Spacing.two, alignItems: 'center', alignSelf: 'flex-start' },
   buttonText: { color: '#FFFFFF', fontWeight: '800', letterSpacing: 0.5 },
 });

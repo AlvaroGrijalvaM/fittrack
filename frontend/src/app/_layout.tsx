@@ -33,6 +33,7 @@ function RootNavigator() {
             <Stack.Screen key="sensor" name="sensor" />,
             <Stack.Screen key="outdoor" name="outdoor" />,
             <Stack.Screen key="history" name="history" />,
+            <Stack.Screen key="notifications" name="notifications" />,
             <Stack.Screen key="premium" name="premium" />,
           ]
         : [

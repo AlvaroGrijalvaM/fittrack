@@ -4,9 +4,10 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
 
+import { Divider } from '@/components/divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing, TitleStyles } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/services/api';
@@ -105,10 +106,11 @@ export default function PremiumScreen() {
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <ThemedText themeColor="textSecondary">← Volver</ThemedText>
         </Pressable>
-        <ThemedText style={styles.logo}>FITTRACK PREMIUM ⭐</ThemedText>
+        <ThemedText style={TitleStyles.screenTitle}>FITTRACK PREMIUM</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           Desbloquea todas las funciones
         </ThemedText>
+        <Divider />
 
         <ThemedView style={[styles.premiumCard, { backgroundColor: '#FEF3C7' }]}>
           {(plan?.features ?? []).map((f) => (
@@ -135,11 +137,11 @@ export default function PremiumScreen() {
           </>
         ) : (
           <Pressable
-            style={[styles.subscribeButton, { backgroundColor: '#FBBF24' }]}
+            style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
             onPress={subscribe}
             disabled={busy}>
             {busy ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color="#111827" />
             ) : (
               <ThemedText style={styles.subscribeText}>SUSCRIBIRME</ThemedText>
             )}
@@ -158,15 +160,14 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: Spacing.four, gap: Spacing.three, paddingBottom: Spacing.six },
-  logo: { fontSize: 22, fontWeight: '800', letterSpacing: 1, color: '#B45309' },
   backLink: { alignSelf: 'flex-start', paddingVertical: Spacing.one },
-  premiumCard: { borderRadius: 16, padding: Spacing.four, gap: Spacing.two },
+  premiumCard: { borderRadius: 0, padding: Spacing.four, gap: Spacing.two },
   feature: { fontSize: 16, fontWeight: '600', color: '#92400E' },
   price: { fontSize: 22, fontWeight: '800', color: '#92400E', marginTop: Spacing.two },
-  subscribeButton: { borderRadius: 12, paddingVertical: Spacing.three, alignItems: 'center' },
-  subscribeText: { color: '#FFFFFF', fontWeight: '800', letterSpacing: 1 },
-  activeCard: { borderRadius: 16, padding: Spacing.three, gap: Spacing.one, alignItems: 'center' },
+  subscribeButton: { borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center' },
+  subscribeText: { color: '#111827', fontWeight: '800', letterSpacing: 1 },
+  activeCard: { borderRadius: 0, padding: Spacing.three, gap: Spacing.one, alignItems: 'center' },
   activeTitle: { color: '#16A34A', fontWeight: '800', fontSize: 18 },
-  cancelButton: { borderRadius: 12, borderWidth: 1, paddingVertical: Spacing.three, alignItems: 'center' },
+  cancelButton: { borderRadius: 0, borderWidth: 1, paddingVertical: Spacing.three, alignItems: 'center' },
   note: { textAlign: 'center', marginTop: Spacing.three },
 });

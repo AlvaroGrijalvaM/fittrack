@@ -357,6 +357,7 @@ router.patch(
       );
 
       const completedGoals = [];
+      let streakNotif = null;
       if (data.status === 'completed') {
         const today = fmt(new Date());
         await conn.query(
@@ -371,19 +372,68 @@ router.patch(
           [req.user.userId, today, Math.max(1, Math.round(durationSeconds / 60)), distanceM, calories]
         );
         completedGoals.push(...(await refreshGoals(conn, req.user.userId)));
-      }
 
-      for (const g of completedGoals) {
-        await conn.query(
-          `INSERT INTO notifications (user_id, type, title, body, scheduled_for)
-           VALUES (?, 'goal_completed', '¡Meta completada! 🎉', ?, NOW())`,
-          [req.user.userId, `Completaste tu objetivo: ${g.title}`]
+        // Preferencias de notificación (si no existe la fila, se usan los defaults del esquema)
+        const [prefRows] = await conn.query(
+          'SELECT goal_completed_enabled, streak_enabled FROM notification_preferences WHERE user_id = ? LIMIT 1',
+          [req.user.userId]
         );
+        const prefs = prefRows[0] || { goal_completed_enabled: 1, streak_enabled: 1 };
+
+        if (prefs.goal_completed_enabled) {
+          for (const g of completedGoals) {
+            await conn.query(
+              `INSERT INTO notifications (user_id, type, title, body, scheduled_for, metadata)
+               VALUES (?, 'goal_completed', '¡Meta completada! 🎉', ?, NOW(), ?)`,
+              [req.user.userId, `Completaste tu objetivo: ${g.title}`, JSON.stringify({ goal_id: g.id })]
+            );
+          }
+        }
+
+        // Racha: notifica en hitos (3, 7, 14, 30, 60, 100 días) solo si está activo
+        if (prefs.streak_enabled) {
+          const [streakRes] = await conn.query(
+            `SELECT DISTINCT activity_date FROM daily_activity
+              WHERE user_id = ? AND workouts_count > 0 ORDER BY activity_date DESC LIMIT 400`,
+            [req.user.userId]
+          );
+          const dates = new Set(streakRes.map((r) => fmt(r.activity_date)));
+          let streak = 0;
+          const day = new Date();
+          day.setHours(0, 0, 0, 0);
+          if (!dates.has(fmt(day))) day.setDate(day.getDate() - 1);
+          while (dates.has(fmt(day))) {
+            streak += 1;
+            day.setDate(day.getDate() - 1);
+          }
+          const MILESTONES = [3, 7, 14, 30, 60, 100];
+          if (MILESTONES.includes(streak)) {
+            const [dup] = await conn.query(
+              `SELECT id FROM notifications
+                WHERE user_id = ? AND type = 'streak' AND title = ?
+                LIMIT 1`,
+              [req.user.userId, `¡Racha de ${streak} días! 🔥`]
+            );
+            if (!dup.length) {
+              const [ins] = await conn.query(
+                `INSERT INTO notifications (user_id, type, title, body, scheduled_for, metadata)
+                 VALUES (?, 'streak', ?, ?, NOW(), ?)`,
+                [
+                  req.user.userId,
+                  `¡Racha de ${streak} días! 🔥`,
+                  `Llevas ${streak} días seguidos entrenando. ¡No rompas la racha!`,
+                  JSON.stringify({ streak }),
+                ]
+              );
+              streakNotif = { id: ins.insertId, streak };
+            }
+          }
+        }
       }
 
       await conn.commit();
       const [fresh] = await conn.query('SELECT * FROM workouts WHERE id = ? LIMIT 1', [id]);
-      res.json({ workout: fresh[0], completedGoals });
+      res.json({ workout: fresh[0], completedGoals, streakNotif });
     } catch (err) {
       await conn.rollback();
       throw err;
