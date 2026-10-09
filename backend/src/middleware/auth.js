@@ -39,11 +39,19 @@ function authRequired(req, res, next) {
 /** Función exclusiva para usuarios Premium (consulta el estado actual en DB). */
 async function requirePremium(req, res, next) {
   try {
+    // Exige premium vigente: flag + suscripcion activa no vencida
     const [rows] = await pool.query(
-      'SELECT premium FROM users WHERE id = ? LIMIT 1',
+      `SELECT u.id FROM users u
+        WHERE u.id = ?
+          AND u.premium = 1
+          AND EXISTS (SELECT 1 FROM subscriptions s
+                       WHERE s.user_id = u.id
+                         AND s.status = 'active'
+                         AND (s.expires_at IS NULL OR s.expires_at > NOW()))
+        LIMIT 1`,
       [req.user.userId]
     );
-    if (!rows.length || !rows[0].premium) {
+    if (!rows.length) {
       return res.status(403).json({ error: 'Función exclusiva para usuarios Premium' });
     }
     req.user.premium = true;

@@ -17,6 +17,15 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Android exige un canal para mostrar notificaciones (locales y push)
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannelAsync('reminders', {
+    name: 'Recordatorios',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#22C55E',
+  }).catch(() => {});
+}
 async function getPushToken(): Promise<string | null> {
   if (!Device.isDevice) return null;
   try {

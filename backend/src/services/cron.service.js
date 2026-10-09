@@ -80,10 +80,40 @@ async function scheduleDailyReminders() {
   }
 }
 
+/** Expira suscripciones vencidas y corrige users.premium (ejecutar a diario y al arrancar). */
+async function expireSubscriptions() {
+  try {
+    const [expired] = await pool.query(
+      `UPDATE subscriptions
+          SET status = 'expired'
+        WHERE status = 'active'
+          AND expires_at IS NOT NULL
+          AND expires_at <= NOW()`
+    );
+    if (expired.affectedRows > 0) {
+      await pool.query(
+        `UPDATE users u
+            SET u.premium = 0
+          WHERE u.premium = 1
+            AND NOT EXISTS (
+                  SELECT 1 FROM subscriptions s
+                   WHERE s.user_id = u.id
+                     AND s.status = 'active'
+                     AND (s.expires_at IS NULL OR s.expires_at > NOW())
+                )`
+      );
+      console.log(`[cron] ${expired.affectedRows} suscripcion(es) expirada(s)`);
+    }
+  } catch (err) {
+    console.error('[cron] error expirando suscripciones:', err.message);
+  }
+}
 function start() {
   cron.schedule('* * * * *', sendScheduledNotifications);
   cron.schedule('5 0 * * *', scheduleDailyReminders);
+  cron.schedule('0 0 * * *', expireSubscriptions);
+  expireSubscriptions(); // corrige banderas al arrancar
   console.log('[cron] recordatorios activados.');
 }
 
-module.exports = { start, sendScheduledNotifications, scheduleDailyReminders };
+module.exports = { start, sendScheduledNotifications, scheduleDailyReminders, expireSubscriptions };

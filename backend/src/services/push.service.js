@@ -23,7 +23,7 @@ async function send(pushTokens, title, body, data = {}) {
     return { simulated: true, sent: valid.length, reason: 'expo-sdk-no-config' };
   }
 
-  const messages = valid.map((to) => ({ to, sound: 'default', title, body, data }));
+  const messages = valid.map((to) => ({ to, sound: 'default', title, body, channelId: 'reminders', data })); // channelId: canal de Android
   try {
     const chunks = expo.chunkPushNotifications(messages);
     let tickets = [];
