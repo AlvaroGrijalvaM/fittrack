@@ -121,7 +121,7 @@ export default function HomeScreen() {
               const pct = Math.min(100, Math.round((g.current / g.target) * 100));
               return (
                 <View key={g.id} style={styles.goalRow}>
-                  <ThemedText type="small" style={styles.goalTitle} numberOfLines={1}>
+                  <ThemedText type="small" style={styles.goalTitle}>
                     {g.title}
                   </ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
