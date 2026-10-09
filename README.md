@@ -135,9 +135,14 @@ npx expo run:android                   # compila e instala el dev client
   verifica que teléfono y PC estén en la misma red y, si persiste, usa `--tunnel`.
 ## Development build con EAS (Android)
 
-La IP del backend y la clave de Stripe viven en dos lugares: `frontend/.env` (local,
-ignorado por git; lo lee Metro) y el bloque `env` de cada perfil en `eas.json`
-(lo incrustan los builds de EAS). Al cambiar la IP, actualiza ambos.
+La IP del backend y la clave de Stripe se configuran en `frontend/.env` (local, ignorado
+por git). Los builds de EAS toman esas variables de la **nube EAS**: `eas.json` solo
+declara el `environment` de cada perfil. Al cambiar un valor en `.env`, sincronízalo:
+
+```bash
+cd frontend
+eas env:push development --path .env --force   # y preview, si usas ese perfil
+```
 
 ```bash
 cd frontend
@@ -147,7 +152,7 @@ npx expo start --dev-client        # Metro: la app se conecta a tu PC
 ```
 
 - El dev client reemplaza a Expo Go: incluye `expo-notifications`, Stripe y los sensores nativos.
-- Si cambias de Wi-Fi: actualiza la IP en `frontend/.env` y en `eas.json`, haz commit y vuelve a compilar.
+- Si cambias de Wi-Fi: actualiza la IP en `frontend/.env`, ejecuta `eas env:push`, haz commit y vuelve a compilar.
 - Perfil `preview`: genera un APK sin development client (para compartir la interfaz sin Metro).
 - Push real en Android: sube las credenciales FCM de tu proyecto Firebase en
   [expo.dev](https://expo.dev) → Credentials → Android (los builds funcionan sin ellas).
