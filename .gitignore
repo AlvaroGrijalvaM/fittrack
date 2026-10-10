@@ -9,6 +9,7 @@ node_modules/
 # variables de entorno (secretos y configuración local)
 .env
 .env*.local
+google-services.json
 
 # Expo / Metro
 .expo/

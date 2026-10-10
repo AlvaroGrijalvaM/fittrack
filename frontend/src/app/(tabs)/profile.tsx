@@ -67,19 +67,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const onTestPush = async () => {
-    try {
-      const r = await api.post<{ simulated?: boolean; sent?: number }>('/notifications/test');
-      if (r.simulated) {
-        Alert.alert('Notificación de prueba', 'Demostración: las notificaciones push no están activas en esta versión.');
-      } else {
-        Alert.alert('Notificación de prueba', `Enviada a ${r.sent ?? 0} dispositivo(s).`);
-      }
-    } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo enviar');
-    }
-  };
-
   const onLogout = () => {
     Alert.alert('Cerrar sesión', '¿Salir de tu cuenta?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -177,9 +164,6 @@ export default function ProfileScreen() {
               thumbColor={theme.background}
             />
           </ThemedView>
-          <Pressable style={[styles.secondaryButton, { borderColor: theme.primary }]} onPress={onTestPush}>
-            <ThemedText style={{ color: theme.primaryDark, fontWeight: '700' }}>Probar notificación</ThemedText>
-          </Pressable>
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.card}>
@@ -242,6 +226,5 @@ const styles = StyleSheet.create({
     minWidth: 72,
     textAlign: 'center',
   },
-  secondaryButton: { borderRadius: 0, borderWidth: 1, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, alignItems: 'center', marginTop: Spacing.two },
   logoutButton: { borderRadius: 0, borderWidth: 1, paddingHorizontal: Spacing.three, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.one },
 });

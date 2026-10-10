@@ -3,8 +3,9 @@
 **FitTrack** es una aplicación móvil (Expo SDK 57 / React Native / TypeScript) con API REST
 (Node.js + Express + MySQL) para planificar, realizar y registrar entrenamientos: rutinas y
 ejercicios, objetivos y estadísticas, sensores del teléfono (acelerómetro, giroscopio,
-magnetómetro y GPS), notificaciones push y suscripción Premium con **pagos de Stripe en modo
-de prueba** (sin credenciales, la API opera en modo simulado).
+magnetómetro y GPS), notificaciones push y suscripción Premium con **pagos de Stripe**
+(PaymentSheet en modo test, formulario dentro de la app; sin credenciales, la API opera en
+modo simulado).
 
 | Módulo | Uso |
 | --- | --- |
@@ -30,6 +31,8 @@ de prueba** (sin credenciales, la API opera en modo simulado).
 8. **Stats** (`/stats`) — gráfica semanal (L M X J V S D) y resumen de progreso.
 9. **Perfil** (`/profile`) — datos, preferencias de notificación y accesos.
 10. **Premium** (`/premium`) — plan, pago con Stripe y cancelación de la suscripción.
+11. **Centro de notificaciones** (`/notifications`) — historial de push, no leídas y
+    marcar como leídas.
 
 ## Flujo
 
@@ -63,7 +66,7 @@ Registro → Inicio (resumen de la semana) → Elegir rutina → Iniciar entrena
 | Sensores / GPS | `POST /api/sensors/workouts/:id/sensor-data` · `PUT /api/workouts/:id/gps` · `/points` |
 | Metas / stats | CRUD `/api/goals` · `GET /api/stats/weekly` · `/overview` · `/streak` |
 | Pagos | `GET /api/subscriptions/plan` · `/config` · `POST /payment-sheet` · `/verify` · `/cancel` · `/webhook` |
-| Notificaciones | `GET/PUT /api/notifications/preferences` · `POST /token` · `/test` · `GET /history` · `PATCH /:id/read` · `POST /history/read-all` |
+| Notificaciones | `GET/PUT /api/notifications/preferences` · `POST /token` · `GET /history` · `PATCH /:id/read` · `POST /history/read-all` |
 
 
 ## Pagos con Stripe (modo de prueba)
@@ -106,21 +109,14 @@ App                               Backend                        Stripe (test)
   racha en hitos 3/7/14/30/60/100 días (si `streak_enabled`).
 - Sin `EXPO_ACCESS_TOKEN`, las entregas se marcan como simuladas (el flujo completo es igual).
 
-## Credenciales
+## Secretos
 
-| Credencial | Dónde va | Estado |
-| --- | --- | --- |
-| MySQL, `JWT_SECRET` | `backend/.env` | ✅ configurados |
-| `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` | `backend/.env` | ✅ configuradas (modo test) |
-| `EXPO_PUBLIC_API_URL` + clave pública Stripe | `frontend/.env` → `eas env:push` | ✅ configuradas (entornos `development`/`preview`) |
-| `EXPO_ACCESS_TOKEN` | `backend/.env` | ❌ crear en [expo.dev](https://expo.dev) → Access Tokens (para push real) |
-| Service account de FCM | [expo.dev](https://expo.dev) → Credentials → Android | ❌ además del token, obligatorio para recibir push en Android (Firebase → Project settings → Service accounts) |
-| `STRIPE_WEBHOOK_SECRET` | `backend/.env` | ⬜ solo para probar el webhook: `stripe listen --forward-to localhost:3000/api/subscriptions/webhook` |
-| URL pública de la API | `eas env:create --environment production …` | ⬜ cuando se despliegue fuera de la LAN (Render/Railway) |
-| Cuenta Apple Developer | — | ⬜ solo para builds de iOS |
-
-Sin `EXPO_ACCESS_TOKEN` y FCM todo lo demás funciona: los envíos se registran
-como demostración y la app usa recordatorios locales.
+Los secretos viven fuera del repositorio: `backend/.env` (MySQL, `JWT_SECRET`, claves
+Stripe, `EXPO_ACCESS_TOKEN`) y `frontend/.env` (`EXPO_PUBLIC_API_URL` y clave pública de
+Stripe), este último sincronizado a la nube con `eas env:push`. Opcionales:
+`STRIPE_WEBHOOK_SECRET` (probar el webhook), service account de FCM y URL pública de la
+API (cuando el backend salga de la LAN). Sin `EXPO_ACCESS_TOKEN` y FCM todo lo demás
+funciona: los envíos se registran como demostración y la app usa recordatorios locales.
 
 ## Requisitos
 
@@ -130,6 +126,7 @@ como demostración y la app usa recordatorios locales.
   (`npx expo run:android` o un build EAS de desarrollo)
 - **Dispositivo físico** para sensores/GPS (no existen en el simulador)
 - Cuenta de Stripe en modo test (opcional; sin credenciales opera el pago simulado)
+
 ## Ejecutar
 
 ```bash
@@ -146,6 +143,8 @@ npm start                   # API en http://localhost:3000/api/health
 cd frontend
 npm install
 copy .env.example .env      # EXPO_PUBLIC_API_URL y EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
+# google-services.json: descárgalo de Firebase Console → Project settings → Your apps
+# y colócalo en frontend/ (git lo ignora; EAS Build lo recibe gracias al .easignore)
 npx expo prebuild --platform android   # genera android/ (solo la primera vez)
 npx expo run:android                   # compila e instala el dev client
 ```
@@ -158,6 +157,7 @@ npx expo run:android                   # compila e instala el dev client
 - **"Cannot connect to Expo CLI"**: el dev client no alcanza a Metro — reinicia con
   `npx expo start --dev-client -c`, cierra instancias previas de Metro (`Ctrl+C`),
   verifica que teléfono y PC estén en la misma red y, si persiste, usa `--tunnel`.
+
 ## Development build con EAS (Android)
 
 La IP del backend y la clave de Stripe se configuran en `frontend/.env` (local, ignorado
@@ -179,8 +179,10 @@ npx expo start --dev-client        # Metro: la app se conecta a tu PC
 - El dev client reemplaza a Expo Go: incluye `expo-notifications`, Stripe y los sensores nativos.
 - Si cambias de Wi-Fi: actualiza la IP en `frontend/.env`, ejecuta `eas env:push`, haz commit y vuelve a compilar.
 - Perfil `preview`: genera un APK sin development client (para compartir la interfaz sin Metro).
-- Push real en Android: sube las credenciales FCM de tu proyecto Firebase en
-  [expo.dev](https://expo.dev) → Credentials → Android (los builds funcionan sin ellas).
+- Push real en Android: requiere `frontend/google-services.json` (descárgalo en Firebase
+  Console → Project settings → Your apps; git lo ignora y EAS Build lo sube gracias al
+  `.easignore` de la raíz) y la service account de FCM en [expo.dev](https://expo.dev) →
+  Credentials → Android. Los builds funcionan sin ellas (entregas simuladas).
 
 ## Construir el APK (Android)
 

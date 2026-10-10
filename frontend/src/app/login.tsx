@@ -1,9 +1,10 @@
 /**
  * Pantalla de inicio de sesión.
  */
+import { Ionicons } from '@expo/vector-icons';
 import { Link, Redirect } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -18,6 +19,7 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -54,14 +56,23 @@ export default function LoginScreen() {
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={[styles.input, { backgroundColor: theme.backgroundElement, color: theme.text }]}
-        placeholder="Contraseña"
-        placeholderTextColor={theme.textSecondary}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={[styles.input, styles.passwordRow, { backgroundColor: theme.backgroundElement }]}>
+        <TextInput
+          style={[styles.passwordInput, { color: theme.text }]}
+          placeholder="Contraseña"
+          placeholderTextColor={theme.textSecondary}
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <Pressable
+          onPress={() => setShowPassword((v) => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={theme.textSecondary} />
+        </Pressable>
+      </View>
 
       {error ? (
         <ThemedText themeColor="danger" style={styles.error}>
@@ -83,6 +94,8 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: Spacing.four, gap: Spacing.three },
   input: { borderRadius: 0, paddingHorizontal: Spacing.three, paddingVertical: Spacing.three, fontSize: 16 },
+  passwordRow: { flexDirection: 'row', alignItems: 'center' },
+  passwordInput: { flex: 1, paddingHorizontal: 0, paddingVertical: 0, fontSize: 16 },
   button: { borderRadius: 0, paddingVertical: Spacing.three, alignItems: 'center', marginTop: Spacing.two },
   buttonText: { color: '#FFFFFF', fontWeight: '700' },
   error: { textAlign: 'center' },

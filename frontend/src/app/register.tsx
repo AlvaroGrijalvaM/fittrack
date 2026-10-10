@@ -1,9 +1,10 @@
 /**
  * Pantalla de registro de cuenta.
  */
+import { Ionicons } from '@expo/vector-icons';
 import { Link, Redirect } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -35,6 +36,7 @@ export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
@@ -106,7 +108,23 @@ export default function RegisterScreen() {
 
         {input('Nombre', name, setName)}
         {input('Correo electrónico', email, setEmail)}
-        {input('Contraseña (mín. 6 caracteres)', password, setPassword)}
+        <View style={[styles.input, styles.passwordRow, { backgroundColor: theme.backgroundElement }]}>
+          <TextInput
+            style={[styles.passwordInput, { color: theme.text }]}
+            placeholder="Contraseña (mín. 6 caracteres)"
+            placeholderTextColor={theme.textSecondary}
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Pressable
+            onPress={() => setShowPassword((v) => !v)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={theme.textSecondary} />
+          </Pressable>
+        </View>
         {input('Edad', age, setAge, 'numeric')}
         {input('Peso (kg)', weight, setWeight, 'numeric')}
         {input('Altura (cm)', height, setHeight, 'numeric')}
@@ -145,6 +163,8 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   content: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.six, gap: Spacing.two },
   input: { borderRadius: 0, paddingHorizontal: Spacing.three, paddingVertical: Spacing.three, fontSize: 16 },
+  passwordRow: { flexDirection: 'row', alignItems: 'center' },
+  passwordInput: { flex: 1, paddingHorizontal: 0, paddingVertical: 0, fontSize: 16 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   chip: { borderRadius: 0, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
   chipText: { color: '#6B7280' },

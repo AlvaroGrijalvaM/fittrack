@@ -1,0 +1,46 @@
+# =============================================================
+# FitTrack — easignore para EAS Build (raíz del repo)
+# EAS usa este archivo en lugar de .gitignore al subir el código;
+# google-services.json NO se excluye para que los builds en la
+# nube puedan compilar con Firebase Cloud Messaging.
+# =============================================================
+
+# dependencias
+node_modules/
+
+# variables de entorno (secretos y configuración local)
+.env
+.env*.local
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# carpetas nativas generadas (prebuild)
+ios/
+android/
+.kotlin/
+
+# firmas y certificados
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+*.orig.*
+
+# TypeScript
+*.tsbuildinfo
+
+# logs / debug
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# sistema
+.DS_Store

@@ -32,6 +32,8 @@ const TYPE_ICONS: Record<NotificationItem['type'], keyof typeof Ionicons.glyphMa
   system: 'information-circle',
 };
 
+// El backend entrega ISO UTC (p. ej. '2026-10-09T15:04:00.000Z'); se formatea en la
+// zona horaria del dispositivo. Se tolera el DATETIME naive heredado 'YYYY-MM-DD HH:MM:SS'.
 function formatDateTime(value: string | null): string {
   if (!value) return '';
   const d = new Date(value.length === 19 ? value.replace(' ', 'T') : value);

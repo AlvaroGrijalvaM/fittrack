@@ -1,5 +1,5 @@
 /**
- * Notificaciones push: token del dispositivo, preferencias, historial y test.
+ * Notificaciones push: token del dispositivo, preferencias e historial.
  */
 const express = require('express');
 const { z } = require('zod');
@@ -7,7 +7,6 @@ const pool = require('../config/db');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { HttpError } = require('../utils/httpError');
 const { authRequired } = require('../middleware/auth');
-const pushService = require('../services/push.service');
 const cronService = require('../services/cron.service');
 
 const router = express.Router();
@@ -31,6 +30,27 @@ const prefsSchema = z.object({
   weekly_summary_enabled: boolish.optional(),
   timezone: z.string().max(64).optional(),
 });
+
+// Los DATETIME de MySQL llegan como texto naive 'YYYY-MM-DD HH:MM:SS' en la hora del
+// servidor (dateStrings); se convierten a ISO UTC para que el cliente los muestre en
+// su propia zona horaria.
+function toIso(value) {
+  if (value === null || value === undefined) return null;
+  if (value instanceof Date) return value.toISOString();
+  const s = String(value);
+  const naive = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(s);
+  const d = new Date(naive ? s.replace(' ', 'T') : s);
+  return Number.isNaN(d.getTime()) ? value : d.toISOString();
+}
+
+const DATE_FIELDS = ['sent_at', 'scheduled_for', 'read_at', 'created_at'];
+
+/** Copia de una notificación con sus fechas convertidas a ISO UTC. */
+function toClientNotification(row) {
+  const out = { ...row };
+  for (const f of DATE_FIELDS) out[f] = toIso(row[f]);
+  return out;
+}
 
 // POST /api/notifications/token — registrar el token Expo del dispositivo
 router.post(
@@ -137,7 +157,7 @@ router.get(
       'SELECT COUNT(*) AS unread FROM notifications WHERE user_id = ? AND read_at IS NULL',
       [req.user.userId]
     );
-    res.json({ notifications: rows, unread: Number(cnt[0].unread) || 0 });
+    res.json({ notifications: rows.map(toClientNotification), unread: Number(cnt[0].unread) || 0 });
   })
 );
 
@@ -153,7 +173,7 @@ router.patch(
     );
     if (!result.affectedRows) throw new HttpError(404, 'Notificación no encontrada');
     const [rows] = await pool.query('SELECT * FROM notifications WHERE id = ? LIMIT 1', [id]);
-    res.json({ notification: rows[0] });
+    res.json({ notification: toClientNotification(rows[0]) });
   })
 );
 
@@ -166,28 +186,6 @@ router.post(
       [req.user.userId]
     );
     res.json({ updated: result.affectedRows });
-  })
-);
-
-// POST /api/notifications/test — notificación push de prueba
-router.post(
-  '/test',
-  asyncHandler(async (req, res) => {
-    const [tokens] = await pool.query(
-      'SELECT expo_push_token FROM user_push_tokens WHERE user_id = ? AND active = 1',
-      [req.user.userId]
-    );
-    const result = await pushService.send(
-      tokens.map((t) => t.expo_push_token),
-      '¡Hola desde FitTrack! 🔔',
-      'Esta es una notificación push de prueba.'
-    );
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, sent_at)
-       VALUES (?, 'system', 'Prueba de notificación', 'Se envió una notificación de prueba a tu dispositivo.', ?)`,
-      [req.user.userId, new Date()]
-    );
-    res.json(result);
   })
 );
 
